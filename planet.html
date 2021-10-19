@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saturn</title>
+    <script src = "js/three.min.js"></script>
+    <script src = "js/controls/OrbitControls.js"></script>
+</head>
+<body>
+</body>
+</html>
+
+<script>    
+    let scene, camera, renderer, controls, rayCast, planet;
+    
+    let randomInRange = function(from, to) {
+        let x = Math.random() * (to - from);
+        return x + from;
+    };
+    
+    let createPlanet = function() {
+        const geometry = new THREE.SphereGeometry( 54, 30, 25 );
+        
+        let surface = new THREE.TextureLoader().load('./surface/saturn-surface.jpg')
+        const material = new THREE.MeshBasicMaterial({ map: surface, roughness: 1 });
+
+        planet = new THREE.Mesh( geometry, material );
+        // scene.add( planet );
+    };
+
+    let gas;
+    let gasRadius = [[70, 80], [80, 86], [89, 93], [93, 104],
+                    [105, 113], [113, 125], [83, 82], [107, 107.5],
+                    [103, 103.5], [126, 140]];
+    let gasColor = [0xcecece, 0xbfbdaf, 0xd8d8bc, 0xead6b8, 0xcecece, 0xead6b8, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xbfbdaf];
+    
+    let createGases = function() {
+        for(let i=0; i<10; i++){
+            const geometry = new THREE.RingGeometry(gasRadius[i][0], gasRadius[i][1], 1000);
+            const material = new THREE.MeshBasicMaterial({ color: gasColor[i], transparent: true, opacity: .4, side: THREE.DoubleSide });
+    
+            gas = new THREE.Mesh( geometry, material );
+            gas.rotation.x = THREE.Math.degToRad(90);
+            scene.add(gas);
+        }
+    }
+
+    let star;
+
+    let createStars = function() {
+        for (var i = 0; i < 600; i++) {
+            const geometry = new THREE.IcosahedronGeometry(0.5, 0);
+            const material = new THREE.MeshBasicMaterial({ color: 0xFFFFF, transparent: 0.5})
+        
+            star = new THREE.Mesh( geometry, material );
+
+            star.position.x = randomInRange(-400, 400);
+            star.position.y = randomInRange(-400, 400);
+            star.position.z = randomInRange(-400, 400);
+
+            scene.add(star);
+        }
+    }
+
+    let pan;
+
+    let createPan = function() {
+        const geometry = new THREE.SphereGeometry( 0.246, 30, 25 );
+        
+        // let surface = new THREE.TextureLoader().load('./saturn-surface.jpg')
+        const material = new THREE.MeshBasicMaterial({ color: 0xFFFFF  });
+
+        pan = new THREE.Mesh( geometry, material );
+        pan.position.set(93, 0, 0);
+        // scene.add( pan );
+
+        const geometry_orbit = new THREE.RingGeometry(92.5, 93, 1000);
+        const material_orbit = new THREE.MeshBasicMaterial({ color: 0xFFFFF, transparent: true, opacity: .4, side: THREE.DoubleSide });
+    
+        let orbit = new THREE.Mesh( geometry_orbit, material_orbit );
+        orbit.rotation.x = THREE.Math.degToRad(90);
+        scene.add(orbit);
+    }
+
+    let pandora;
+
+    let createPandora = function() {
+        const geometry = new THREE.SphereGeometry( 0.243, 30, 25 );
+        
+        // let surface = new THREE.TextureLoader().load('./saturn-surface.jpg')
+        const material = new THREE.MeshBasicMaterial({ color: 0xFFFFF  });
+
+        pandora = new THREE.Mesh( geometry, material );
+        pandora.position.set(101, 0, 0);
+        // scene.add( pandora );
+
+        const geometry_orbit = new THREE.RingGeometry(101, 101.5, 1000);
+        const material_orbit = new THREE.MeshBasicMaterial({ color: 0xFFFFF, transparent: true, opacity: .4, side: THREE.DoubleSide });
+    
+        let orbit = new THREE.Mesh( geometry_orbit, material_orbit );
+        orbit.rotation.x = THREE.Math.degToRad(90);
+        scene.add(orbit);
+    }
+
+    let epimetheus, orbit_e;
+
+    let createEpimetheus = function(){
+        const geometry = new THREE.SphereGeometry( 0.348, 30, 25 );
+        
+        // let surface = new THREE.TextureLoader().load('./saturn-surface.jpg')
+        const material = new THREE.MeshBasicMaterial({ color: 0xFFFFF  });
+
+        epimetheus = new THREE.Mesh( geometry, material );
+        epimetheus.position.set(111, 0, 0);
+        // scene.add( epimetheus );
+
+        const geometry_orbit = new THREE.RingGeometry(111, 111.5, 1000);
+        const material_orbit = new THREE.MeshBasicMaterial({ color: 0xFFFFF, transparent: true, opacity: .4, side: THREE.DoubleSide });
+    
+        orbit_e = new THREE.Mesh( geometry_orbit, material_orbit );
+        orbit_e.rotation.x = THREE.Math.degToRad(90);
+        scene.add(orbit_e);
+    }
+
+    let mimas;
+
+    let createMimas = function(){
+        const geometry = new THREE.SphereGeometry( 1.107, 30, 25 );
+        
+        // let surface = new THREE.TextureLoader().load('./saturn-surface.jpg')
+        const material = new THREE.MeshBasicMaterial({ color: 0xFFFFF });
+
+        mimas = new THREE.Mesh( geometry, material );
+        mimas.position.set(145, 0, 0);
+        // scene.add( mimas );
+
+        const geometry_orbit = new THREE.RingGeometry(145, 145.5, 1000);
+        const material_orbit = new THREE.MeshBasicMaterial({ color: 0xFFFFF, transparent: true, opacity: .4, side: THREE.DoubleSide });
+    
+        let orbit = new THREE.Mesh( geometry_orbit, material_orbit );
+        orbit.rotation.x = THREE.Math.degToRad(90);
+        scene.add(orbit);
+    }
+
+    let mouseX = 0;
+    let mouseY = 0;
+
+    let onMouseMove = function(e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        rayCast.setFromCamera(mouse, camera);
+    }
+
+
+    let saturnBase, moonBase;
+
+    
+    // set up the environment - 
+    // initiallize scene, camera, objects and renderer
+    let init = function() {
+        // create the scene
+        scene = new THREE.Scene();
+        // console.log(scene)
+        scene.background = new THREE.Color(0x00000);
+        
+        // create an locate the camera
+        camera = new THREE.PerspectiveCamera(20, 
+                        window.innerWidth / window.innerHeight, 
+                        1, 1000);
+        camera.position.set(700, 235, 0);
+
+        // Model
+        createPlanet();
+        createGases();
+        createStars();
+
+        // Bulan
+        createPan();
+        createPandora();
+        createEpimetheus();
+        createMimas();
+
+        saturnBase = new THREE.Object3D();
+        moonBase = new THREE.Object3D();
+
+        saturnBase.add(planet);
+        moonBase.add(pan);
+        moonBase.add(pandora);
+        moonBase.add(epimetheus);
+        moonBase.add(mimas);
+        saturnBase.add(moonBase);
+
+        scene.add(saturnBase);
+    
+        // inisialisasi raycaster
+        rayCast = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+        mouse.x = mouse.y = -1;
+        
+        // create the renderer   
+        renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});   
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        document.body.appendChild(renderer.domElement);
+        document.addEventListener("mousemove", onMouseMove, false);  
+
+        // control
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        controls.enableDamping = true;
+    };
+
+    
+    // main animation loop - calls every 50-60 ms.
+    let mainLoop = function() {
+        moonBase.rotation.y += 0.01;
+
+        scene.rotation.z = mouseY * 0.0005;
+        scene.rotation.y = mouseX * 0.0005;
+
+        renderer.render(scene, camera);
+        controls.update();        
+        window.requestAnimationFrame(mainLoop);
+    };
+    
+    ///////////////////////////////////////////////
+    init();
+    mainLoop();
+</script>
