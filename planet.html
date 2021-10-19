@@ -18,12 +18,25 @@
 </html>
 
 <script>    
-    let scene, camera, renderer, controls, rayCast, planet;
+    let scene, camera, renderer, controls, rayCast, planet, comet;
     
     let randomInRange = function(from, to) {
         let x = Math.random() * (to - from);
         return x + from;
     };
+    
+    let createMeteor = function(){
+        const geometry3 = new THREE.IcosahedronGeometry(6, 0);
+        const material3 = new THREE.MeshBasicMaterial({ color: 'red', transparent: 0.8})
+    
+       comet = new THREE.Mesh( geometry3, material3 );
+
+        comet.position.x = randomInRange(-150, 200);
+        comet.position.y = randomInRange(-150, 200);
+        comet.position.z = randomInRange(-150, 200);
+
+        scene.add(comet);
+    }
     
     let createPlanet = function() {
         const geometry = new THREE.SphereGeometry( 54, 30, 25 );
@@ -187,6 +200,11 @@
         createPandora();
         createEpimetheus();
         createMimas();
+        document.body.onkeyup = function(e){
+            if(e.keyCode == 32){
+                createMeteor();
+            }
+        }
 
         saturnBase = new THREE.Object3D();
         moonBase = new THREE.Object3D();
@@ -222,6 +240,13 @@
     let mainLoop = function() {
         moonBase.rotation.y += 0.01;
 
+        if(comet){
+            
+            comet.position.x += 5;
+            comet.position.y -= 1;
+            
+        }
+        
         scene.rotation.z = mouseY * 0.0005;
         scene.rotation.y = mouseX * 0.0005;
 
